@@ -8,7 +8,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 // Pastikan path ke service sudah benar. Saya asumsikan path sebelumnya benar,
 // tapi jika ada error lagi, cek kembali path-nya.
-import { SupabaseClientService } from 'src/providers/supabase/supabase.client/supabase.client.service';
+import { SupabaseClientService } from 'src/supabase/supabase.client/supabase.client.service';
 
 // Interface untuk payload JWT dari Supabase
 export interface SupabaseJwtPayload {
