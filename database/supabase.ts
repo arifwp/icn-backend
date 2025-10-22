@@ -39,7 +39,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      email_logs: {
+        Row: {
+          created_at: string
+          from: string
+          id: number
+          message: string
+          taskId: string | null
+        }
+        Insert: {
+          created_at?: string
+          from: string
+          id?: number
+          message: string
+          taskId?: string | null
+        }
+        Update: {
+          created_at?: string
+          from?: string
+          id?: number
+          message?: string
+          taskId?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_taskId_fkey"
+            columns: ["taskId"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          createdAt: string
+          description: string | null
+          endDate: string
+          id: string
+          startDate: string
+          status: string
+          title: string
+          updatedAt: string | null
+          userId: string
+        }
+        Insert: {
+          createdAt?: string
+          description?: string | null
+          endDate: string
+          id?: string
+          startDate: string
+          status?: string
+          title: string
+          updatedAt?: string | null
+          userId?: string
+        }
+        Update: {
+          createdAt?: string
+          description?: string | null
+          endDate?: string
+          id?: string
+          startDate?: string
+          status?: string
+          title?: string
+          updatedAt?: string | null
+          userId?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
