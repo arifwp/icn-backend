@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
-import { TaskRecommendationDto } from '../dto/task-recommendation.dto/task-recommendation.dto';
 
 @Injectable()
 export class AiIntegrationService {
@@ -15,29 +14,49 @@ export class AiIntegrationService {
     this.openai = new OpenAI({ apiKey });
   }
 
-  async getTaskRecommendation(prompt: string): Promise<TaskRecommendationDto> {
+  // Type guard: pastikan objek punya properti 'code' bertipe string
+  private isOpenAIError(error: unknown): error is { code?: string } {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      typeof (error as Record<string, unknown>)['code'] === 'string'
+    );
+  }
+
+  async getTaskRecommendation(): Promise<any> {
     try {
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo', // Bisa diganti ke gpt-4
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
             content:
-              'Anda adalah Task Recommender AI. Berikan 3 rekomendasi task berdasarkan input user. Format respons harus JSON. Contoh format: [{ "title": "...", "description": "...", "status": "Todo" }]',
+              'Anda adalah Task Recommender AI. Berikan 3 rekomendasi task berdasarkan input user. Format respons harus JSON. Contoh format: [{ "title": "...", "description": "...", "status": "todo" }]. Value status berupa enum diantaranya adalah: todo, in_progress, dan done',
           },
-          { role: 'user', content: prompt },
+          {
+            role: 'user',
+            content: 'Saya ingin rekomendasi task untuk developer frontend',
+          },
         ],
-        // Minta response dalam format JSON
         response_format: { type: 'json_object' },
         temperature: 0.7,
       });
 
-      // Konten response
-      const jsonString = completion.choices[0].message.content || '';
-      // Parsing JSON dan validasi
-      const recommendations = JSON.parse(jsonString) as TaskRecommendationDto[];
+      const jsonString = completion.choices?.[0]?.message?.content ?? '';
+      const recommendations = JSON.parse(jsonString) as any[];
       return recommendations;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        typeof (error as Record<string, unknown>).code === 'string' &&
+        (error as { code: string }).code === 'insufficient_quota'
+      ) {
+        throw new InternalServerErrorException('Kuota OpenAI udah habis');
+      }
+
       console.error('OpenAI API Error:', error);
       throw new InternalServerErrorException(
         'Gagal mendapatkan rekomendasi dari AI.',
