@@ -1,16 +1,16 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Mengaktifkan ValidationPipe secara global
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Menghilangkan properti yang tidak ada di DTO
-      forbidNonWhitelisted: true, // Melempar error jika ada properti yang tidak diizinkan
-      transform: true, // Mengubah payload menjadi instance DTO
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
@@ -21,6 +21,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   await app.listen(3001);
   console.log(`Application is running on: ${await app.getUrl()}`);
