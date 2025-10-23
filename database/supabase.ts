@@ -45,31 +45,26 @@ export type Database = {
           from: string
           id: number
           message: string
-          taskId: string | null
+          taskIds: string[]
+          userId: string | null
         }
         Insert: {
           created_at?: string
           from: string
           id?: number
           message: string
-          taskId?: string | null
+          taskIds?: string[]
+          userId?: string | null
         }
         Update: {
           created_at?: string
           from?: string
           id?: number
           message?: string
-          taskId?: string | null
+          taskIds?: string[]
+          userId?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_taskId_fkey"
-            columns: ["taskId"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tasks: {
         Row: {

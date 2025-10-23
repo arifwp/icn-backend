@@ -32,7 +32,7 @@ export class AiIntegrationService {
           {
             role: 'system',
             content:
-              'Anda adalah Task Recommender AI. Berikan 3 rekomendasi task berdasarkan input user. Format respons harus JSON. Contoh format: [{ "title": "...", "description": "...", "status": "todo" }]. Value status berupa enum diantaranya adalah: todo, in_progress, dan done',
+              'Anda adalah Task Recommender AI. Berikan 3 rekomendasi task berdasarkan input user. Format respons harus JSON. Contoh format: [{ "title": "...", "description": "...", "startDate": "2025-10-23T09:00:00.000Z", "endDate": "2025-10-24T17:00:00.000Z", "status": "todo" }]. Value status berupa enum diantaranya adalah: todo, in_progress, dan done. Value dari endDate tidak boleh kurang dari atau sama dengan startDate',
           },
           {
             role: 'user',

@@ -1,3 +1,4 @@
+// src/tasks/tasks.service.ts
 import {
   Injectable,
   InternalServerErrorException,
@@ -7,17 +8,39 @@ import { Database } from 'database/supabase';
 import { SupabaseClientService } from 'src/supabase/supabase.client/supabase.client.service';
 import { CreateTaskDto, FilterTaskDto, UpdateTaskDto } from '../dto/task.dto';
 import { TaskStatus } from '../entities/task.entity/task.entity';
+import { ConfigService } from '@nestjs/config';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly supabaseClientService: SupabaseClientService) {}
+  private supabaseAdmin: SupabaseClient<Database>;
+
+  constructor(
+    private readonly supabaseClientService: SupabaseClientService,
+    private configService: ConfigService,
+  ) {
+    const supabaseUrl = this.configService.get<string>('supabase.url');
+    const serviceRoleKey = this.configService.get<string>(
+      'supabase.serviceRoleKey',
+    );
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Supabase configuration is missing');
+    }
+
+    // Fix: Remove generic type or use proper typing
+    this.supabaseAdmin = createClient(
+      supabaseUrl,
+      serviceRoleKey,
+    ) as SupabaseClient<Database>;
+  }
 
   async create(
     taskDto: CreateTaskDto,
     userId: string,
   ): Promise<Database['public']['Tables']['tasks']['Row']> {
     try {
-      const { data, error } = await this.supabaseClientService.client
+      const { data, error } = await this.supabaseAdmin
         .from('tasks')
         .insert({
           title: taskDto.title,
@@ -25,7 +48,7 @@ export class TasksService {
           status: taskDto.status || TaskStatus.TODO,
           startDate: taskDto.startDate,
           endDate: taskDto.endDate,
-          userId,
+          userId: userId,
         })
         .select()
         .single();
@@ -36,10 +59,10 @@ export class TasksService {
 
       return data;
     } catch (error) {
+      console.error('Create task error:', error);
       if (error instanceof InternalServerErrorException) {
         throw error;
       }
-
       throw new InternalServerErrorException('Gagal membuat task');
     }
   }
@@ -49,7 +72,7 @@ export class TasksService {
     filter?: FilterTaskDto,
   ): Promise<Database['public']['Tables']['tasks']['Row'][]> {
     try {
-      let query = this.supabaseClientService.client
+      let query = this.supabaseAdmin
         .from('tasks')
         .select('*')
         .eq('userId', userId)
@@ -70,7 +93,6 @@ export class TasksService {
       if (error instanceof InternalServerErrorException) {
         throw error;
       }
-
       throw new InternalServerErrorException('Gagal menampilkan semua task');
     }
   }
